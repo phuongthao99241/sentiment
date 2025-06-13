@@ -6,10 +6,54 @@ import numpy as np
 import os
 import plotly.express as px
 
+
+import streamlit as st
+import hashlib
+import os
+
+# Dummy-Login-Daten (ersetzen durch echte Nutzerdaten in produktiver Umgebung)
+USER_CREDENTIALS = {
+    "admin": "admin123",
+    "marketing": "marketing2024",
+    "gast": "gast"
+}
+
+def login_screen():
+    st.set_page_config(page_title="Login", layout="centered")
+    st.image("logo_transparent.png", width=200)
+    st.markdown("## Willkommen bei **SentimentInsights**")
+    st.markdown("Bitte melden Sie sich an, um fortzufahren.")
+
+    username = st.text_input("Benutzername")
+    password = st.text_input("Passwort", type="password")
+    login_btn = st.button("Einloggen")
+
+    if login_btn:
+        if username in USER_CREDENTIALS and password == USER_CREDENTIALS[username]:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.rerun()
+        else:
+            st.error("❌ Ungültiger Benutzername oder Passwort.")
+
+# Login-Status prüfen
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# Login aufrufen, falls nicht eingeloggt
+if not st.session_state.logged_in:
+    login_screen()
+    st.stop()
+
 st.set_page_config(
     page_title="📊 TV-Stimmungsanalyse",
     layout="wide",
     initial_sidebar_state="expanded"
+)
+
+st.markdown(
+    f"<div style='text-align:right; font-size:0.9em;'>👤 Angemeldet als: <strong>{st.session_state.username}</strong></div>",
+    unsafe_allow_html=True
 )
 
 # Sidebar
@@ -20,6 +64,12 @@ with st.sidebar:
 
 st.title("📺 KI-gestützte TV-Stimmungsanalyse")
 
+with st.sidebar:
+    st.markdown("---")
+    if st.button("Ausloggen"):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.rerun()
 
 @st.cache_data
 def generate_mock_comments(program, start_date, end_date):
@@ -415,4 +465,3 @@ elif tab_choice == "Bericht":
         st.download_button("📥 Bericht herunterladen", csv, "sentiment_report.csv", "text/csv")
     else:
         st.info("Bitte zuerst Daten analysieren.")
-
